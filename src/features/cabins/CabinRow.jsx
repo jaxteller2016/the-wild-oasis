@@ -1,4 +1,9 @@
-import styled from "styled-components";
+import styled from 'styled-components';
+import { formatCurrency } from '../../utils/helpers';
+import PropTypes from 'prop-types';
+import { deleteCabin } from '../../services/apiCabins';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const TableRow = styled.div`
   display: grid;
@@ -25,16 +30,69 @@ const Cabin = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
   color: var(--color-grey-600);
-  font-family: "Sono";
+  font-family: 'Sono';
 `;
 
 const Price = styled.div`
-  font-family: "Sono";
+  font-family: 'Sono';
   font-weight: 600;
 `;
 
 const Discount = styled.div`
-  font-family: "Sono";
+  font-family: 'Sono';
   font-weight: 500;
   color: var(--color-green-700);
 `;
+
+function CabinRow({ cabin }) {
+  const {
+    id: cabinId,
+    name,
+    maxCapacity,
+    regularPrice,
+    discount,
+    image
+  } = cabin;
+
+  const queryClient = useQueryClient();
+
+  const { isLoading: isDeleting, mutate } = useMutation({
+    // mutationFn: (id) => deleteCabin(id)
+    mutationFn: deleteCabin,
+    onSuccess: () => {
+      toast.success('Cabin sucessfully deleted');
+      queryClient.invalidateQueries({
+        queryKey: ['cabins']
+      });
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  return (
+    <TableRow role='row'>
+      <Img src={image} />
+      <Cabin>{name}</Cabin>
+      <div>Fits up to {maxCapacity} guests</div>
+      <Price>{formatCurrency(regularPrice)}</Price>
+      <Discount>{formatCurrency(discount)}</Discount>
+      <button onClick={() => mutate(cabinId)} disabled={isDeleting}>
+        Delete
+      </button>
+    </TableRow>
+  );
+}
+
+CabinRow.propTypes = {
+  cabin: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    created_at: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    maxCapacity: PropTypes.number.isRequired,
+    regularPrice: PropTypes.number.isRequired,
+    discount: PropTypes.number.isRequired,
+    description: PropTypes.string.isRequired,
+    image: PropTypes.string
+  }).isRequired
+};
+
+export default CabinRow;
