@@ -2,8 +2,6 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { HiXMark } from 'react-icons/hi2';
 import { createPortal } from 'react-dom';
-import { cloneElement, createContext, useContext, useState } from 'react';
-import useOutsideClick from '../hooks/useOutsideClick';
 
 const StyledModal = styled.div`
   position: fixed;
@@ -16,7 +14,7 @@ const StyledModal = styled.div`
   padding: 3.2rem 4rem;
   transition: all 0.5s;
 `;
-
+// eslint-disable-next-line  no-unused-vars
 const Overlay = styled.div`
   position: fixed;
   top: 0;
@@ -28,7 +26,7 @@ const Overlay = styled.div`
   z-index: 1000;
   transition: all 0.5s;
 `;
-
+// eslint-disable-next-line  no-unused-vars
 const Button = styled.button`
   background: none;
   border: none;
@@ -54,56 +52,23 @@ const Button = styled.button`
   }
 `;
 
-const ModalContext = createContext();
-
-function Modal({ children }) {
-  const [openName, setOpenName] = useState('');
-
-  const close = () => setOpenName('');
-
-  const open = setOpenName;
-
-  return (
-    <ModalContext.Provider value={{ openName, close, open }}>
-      {children}
-    </ModalContext.Provider>
-  );
-}
-
-function Open({ children, opens: opensWindowName }) {
-  const { open } = useContext(ModalContext);
-  return cloneElement(children, { onClick: () => open(opensWindowName) });
-}
-
-function Window({ children, name }) {
-  const { openName, close } = useContext(ModalContext);
-  const ref = useOutsideClick(close);
-
-  if (name !== openName) return null;
-
+function Modal({ children, onClose }) {
   return createPortal(
     <Overlay>
-      <StyledModal ref={ref}>
-        <Button onClick={close}>
+      <StyledModal>
+        <Button onClick={onClose}>
           <HiXMark />
         </Button>
-        <div>{cloneElement(children, { onCloseModal: () => close() })}</div>
+        <div>{children}</div>
       </StyledModal>
     </Overlay>,
     document.body
   );
 }
 
-Modal.Open = Open;
-Modal.Window = Window;
-
-Window.propTypes = {
-  children: PropTypes.node.isRequired,
-  name: PropTypes.string.isRequired
-};
-
 Modal.propTypes = {
-  children: PropTypes.node.isRequired
+  children: PropTypes.node.isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 export default Modal;
