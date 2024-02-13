@@ -1,4 +1,10 @@
-import styled from "styled-components";
+import styled from 'styled-components';
+import Tag from '../../ui/Tag';
+import { Flag } from '../../ui/Flag';
+import PropTypes from 'prop-types';
+import Button from '../../ui/Button';
+import { Link } from 'react-router-dom';
+import CheckoutButton from './CheckoutButton';
 
 const StyledTodayItem = styled.li`
   display: grid;
@@ -18,3 +24,61 @@ const StyledTodayItem = styled.li`
 const Guest = styled.div`
   font-weight: 500;
 `;
+
+function TodayItem({ activity }) {
+  // eslint-disable-next-line  no-unused-vars
+  const { id, status, guests, numNights } = activity;
+
+  return (
+    <StyledTodayItem>
+      {status === 'unconfirmed' && <Tag type='green'>Arriving</Tag>}
+      {status === 'checked-in' && <Tag type='blue'>Departing</Tag>}
+      <Flag src={guests.countryFlag} alt={`Flag of ${guests.country}`} />
+      <Guest>{guests.fullName}</Guest>
+      <div>{numNights} nights</div>
+      {status === 'unconfirmed' && (
+        <Button
+          size='small'
+          variation='primary'
+          as={Link}
+          to={`/checkin/${id}`}
+        >
+          Check in
+        </Button>
+      )}
+      {status === 'checked-in' && (
+        <CheckoutButton bookingId={id}></CheckoutButton>
+      )}
+    </StyledTodayItem>
+  );
+}
+
+TodayItem.propTypes = {
+  activity: PropTypes.shape({
+    created_at: PropTypes.string.isRequired,
+    startDate: PropTypes.string.isRequired,
+    endDate: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
+    numNights: PropTypes.number.isRequired,
+    numGuests: PropTypes.number.isRequired,
+    cabinPrice: PropTypes.number.isRequired,
+    extrasPrice: PropTypes.number.isRequired,
+    totalPrice: PropTypes.number.isRequired,
+    hasBreakfast: PropTypes.bool.isRequired,
+    observations: PropTypes.string,
+    isPaid: PropTypes.bool.isRequired,
+    guests: PropTypes.shape({
+      fullName: PropTypes.string.isRequired,
+      email: PropTypes.string,
+      country: PropTypes.string,
+      countryFlag: PropTypes.string,
+      nationalID: PropTypes.string
+    }).isRequired,
+    cabins: PropTypes.shape({
+      name: PropTypes.string
+    })
+  }).isRequired
+};
+
+export default TodayItem;
